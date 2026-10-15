@@ -1,2 +1,2 @@
-# memo for kyopro
+# memo for 競プロ
 memoと書いていますが、そんな大層なものではありません。
