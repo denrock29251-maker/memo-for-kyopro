@@ -255,32 +255,20 @@ long long modpow(long long a, long long n, long long mod)
 const ll mod = 998244353;
 // const ll mod = 1000000007;
 // ここのmodは組み合わせ計算二も影響が出る
-const int MaxSize = 2000020;
+const int MaxSize = 500002;
 vector<ll> fac(MaxSize); // n!(mod M)
 vector<ll> ifac(MaxSize);
-ll mpow(ll x, ll n) // 高速なべき乗計算 二分累乗法
-{
-  // https://qiita.com/ofutonton/items/92b1a6f4a7775f00b6ae
-  ll ans = 1;
-  while (n != 0)
-  {
-    if (n & 1)
-      ans = ans * x % mod;
-    x = x * x % mod;
-    n = n >> 1;
-  }
-  return ans;
-}
-ll comb(ll a, ll b) // 高速な組み合わせ計算 preparecombで初期化してから使う //もしa,bが負の値だと0を返すことにしている
+ll comb(ll a, ll b) // 組み合わせの計算初期化してから使う
 {
   if (a < 0 || b < 0)
     return 0;
   if (a == 0 && b == 0)
     return 1;
-  if (a < b || a < 0)
+  if (a < b)
     return 0;
-  ll tmp = ifac[a - b] * ifac[b] % mod;
-  return tmp * fac[a] % mod;
+  ll cur = ifac[a - b] * ifac[b] % mod;
+  // 逆元だから乗算
+  return cur * fac[a] % mod;
 }
 ll comb_large_n(ll a, ll b) // Nのみが大きいときのnCkに対応　計算量はO(K)
 {
@@ -300,10 +288,10 @@ void preparecomb() // 3e5まで対応 階乗をあらかじめ計算しておく
 {
   fac[0] = 1;
   ifac[0] = 1;
-  for (ll i = 0; i < MaxSize - 1; i++)
+  rep(i, 0, MaxSize)
   {
     fac[i + 1] = fac[i] * (i + 1) % mod;
-    ifac[i + 1] = ifac[i] * mpow(i + 1, mod - 2) % mod;
+    ifac[i + 1] = ifac[i] * modpow(i + 1, mod - 2, mod) % mod;
   }
 }
 struct edge
@@ -558,4 +546,38 @@ ll id()
 
 int main()
 {
+  ll n, k;
+  cin >> n >> k;
+  preparecomb();
+  vector<mint> a(n);
+  mint s = 0;
+  rep(i, 0, n)
+  {
+    ll c;
+    cin >> c;
+    a[i] = c;
+    s += c;
+  }
+  mint conbi;
+  mint conbi2;
+  if (k >= 2)
+  {
+    conbi = comb(n - 1, k - 1);
+    conbi2 = comb(n - 2, k - 2);
+  }
+  else if (k >= 1)
+  {
+    conbi = comb(n - 1, k - 1);
+    conbi2 = 0;
+  }
+  mint ans = 0;
+  mint s2 = 0;
+  rep(i, 0, n)
+  {
+    s2 += a[i] * a[i];
+  }
+  ans += s2 * conbi;
+  ans += (s * s - s2) * conbi2;
+  // ここを高速化したい
+  cout << ans.val() << endl;
 }
