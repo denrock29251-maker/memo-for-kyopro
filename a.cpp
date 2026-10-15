@@ -546,38 +546,5 @@ ll id()
 
 int main()
 {
-  ll n, k;
-  cin >> n >> k;
-  preparecomb();
-  vector<mint> a(n);
-  mint s = 0;
-  rep(i, 0, n)
-  {
-    ll c;
-    cin >> c;
-    a[i] = c;
-    s += c;
-  }
-  mint conbi;
-  mint conbi2;
-  if (k >= 2)
-  {
-    conbi = comb(n - 1, k - 1);
-    conbi2 = comb(n - 2, k - 2);
-  }
-  else if (k >= 1)
-  {
-    conbi = comb(n - 1, k - 1);
-    conbi2 = 0;
-  }
-  mint ans = 0;
-  mint s2 = 0;
-  rep(i, 0, n)
-  {
-    s2 += a[i] * a[i];
-  }
-  ans += s2 * conbi;
-  ans += (s * s - s2) * conbi2;
-  // ここを高速化したい
-  cout << ans.val() << endl;
+  
 }
