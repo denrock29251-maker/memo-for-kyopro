@@ -182,7 +182,7 @@ struct SegmentMap
     if (it != m.begin())
     {
       auto p = prev(it);
-      // p.secondだとだめらしい
+      // *p.secondだとだめらしい
       if (p->second >= l)
       {
         ll pl = p->first, pr = p->second;
@@ -207,6 +207,23 @@ struct SegmentMap
         m[r + 1] = cr;
         break;
       }
+    }
+  }
+  ll mex(ll x = 0)
+  {
+    auto p = m.upper_bound(x);
+    if (p == m.begin())
+    {
+      return x;
+    }
+    --p;
+    if (p->second >= x && p->first <= x)
+    {
+      return p->second + 1;
+    }
+    else
+    {
+      return x;
     }
   }
 };
@@ -679,4 +696,14 @@ bool fun(ll t)
 }
 int main()
 {
+  SegmentMap m;
+  ll n;
+  cin >> n;
+  rep(i, 0, n)
+  {
+    ll p;
+    cin >> p;
+    m.insert(p, p);
+    cout << m.mex() << endl;
+  }
 }
