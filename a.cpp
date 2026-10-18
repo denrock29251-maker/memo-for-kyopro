@@ -125,6 +125,91 @@ ll LIS(vector<T> a)
   }
   return dp.size();
 }
+struct SegmentMap
+{
+  map<ll, ll> m; // 区間の左端 -> 右端
+  // bool merge_adjacent;
+  // merge_adjacent = true なら [l, c] と [c+1, r] を1つの区間にまとめる
+  SegmentMap() : m() {};
+  auto begin() const { return m.begin(); }
+  auto end() const { return m.end(); }
+  size_t size() const { return m.size(); }
+  bool empty() const { return m.empty(); }
+  // i を含む区間を指すイテレータ。無ければ m.end()
+  auto get(ll i) const
+  {
+    auto it = m.upper_bound(i);
+    if (it == m.begin())
+      return m.end();
+    --it;
+    if (it->second >= i)
+      return it;
+    return m.end();
+  }
+  // i と j が同じ区間に属しているか
+  bool same(ll i, ll j) const
+  {
+    auto a = get(i);
+    return a != m.end() && a == get(j);
+  }
+  // 区間 [l, r] を追加する (l <= r)。重なる区間(と、設定によって隣接する区間)は併合される
+  void insert(ll l, ll r)
+  {
+    ll d = 1;
+    auto it = m.upper_bound(l);
+    if (it != m.begin())
+    {
+      auto p = prev(it);
+      if (p->second + d >= l)
+      {
+        l = p->first;
+        r = max(r, p->second);
+        it = m.erase(p); // it は元の it と同じ要素を指す
+      }
+    }
+    while (it != m.end() && it->first <= r + d)
+    {
+      r = max(r, it->second);
+      it = m.erase(it);
+    }
+    m[l] = r;
+  }
+  // 全ての区間から [l, r] と重なる部分を削除する (l <= r)
+  void remove(ll l, ll r)
+  {
+    // l より左から始まり、l にかかっている区間を先に処理する
+    auto it = m.upper_bound(l);
+    if (it != m.begin())
+    {
+      auto p = prev(it);
+      // p.secondだとだめらしい
+      if (p->second >= l)
+      {
+        ll pl = p->first, pr = p->second;
+        m.erase(p);
+        if (pl < l)
+          m[pl] = l - 1;
+        if (pr > r)
+        {
+          m[r + 1] = pr;
+          return;
+        }
+      }
+    }
+    // l 以上 r 以下から始まる区間
+    it = m.lower_bound(l);
+    while (it != m.end() && it->first <= r)
+    {
+      ll cr = it->second;
+      it = m.erase(it);
+      if (cr > r)
+      {
+        m[r + 1] = cr;
+        break;
+      }
+    }
+  }
+};
 ll binary(ll n)
 { // n以下の数を探すみたいなやつ改造して
   ll l = 0;
@@ -515,6 +600,34 @@ int keta(ll t)
 {
   return to_string(t).size();
 }
+map<ll, ll> disiver(ll k)
+{
+  map<ll, ll> m;
+  if (k <= 1)
+  {
+    m[k]++;
+    return m;
+  }
+  while (k > 1)
+  {
+    bool t = true;
+    for (ll i = 2; i * i <= k; i++)
+    {
+      if (k % i == 0)
+      {
+        k /= i;
+        m[i]++;
+        t = false;
+        break;
+      }
+    }
+    if (!t)
+      continue;
+    m[k]++;
+    k /= k;
+  }
+  return m;
+}
 //    問題を言い換えてみる？
 //    何が分かればいい？
 //    どう更新するか
@@ -564,113 +677,6 @@ bool fun(ll t)
 {
   return t < target;
 }
-struct SegmentMap
-{
-  map<ll, ll> m; // 区間の左端 -> 右端
-  // bool merge_adjacent;
-  // merge_adjacent = true なら [l, c] と [c+1, r] を1つの区間にまとめる
-  SegmentMap() : m() {};
-  auto begin() const { return m.begin(); }
-  auto end() const { return m.end(); }
-  size_t size() const { return m.size(); }
-  bool empty() const { return m.empty(); }
-  // i を含む区間を指すイテレータ。無ければ m.end()
-  auto get(ll i) const
-  {
-    auto it = m.upper_bound(i);
-    if (it == m.begin())
-      return m.end();
-    --it;
-    if (it->second >= i)
-      return it;
-    return m.end();
-  }
-
-  // i と j が同じ区間に属しているか
-  bool same(ll i, ll j) const
-  {
-    auto a = get(i);
-    return a != m.end() && a == get(j);
-  }
-
-  // 区間 [l, r] を追加する (l <= r)。重なる区間(と、設定によって隣接する区間)は併合される
-  void insert(ll l, ll r)
-  {
-    ll d = 1;
-    auto it = m.upper_bound(l);
-    if (it != m.begin())
-    {
-      auto p = prev(it);
-      if (p->second + d >= l)
-      {
-        l = p->first;
-        r = max(r, p->second);
-        it = m.erase(p); // it は元の it と同じ要素を指す
-      }
-    }
-    while (it != m.end() && it->first <= r + d)
-    {
-      r = max(r, it->second);
-      it = m.erase(it);
-    }
-    m[l] = r;
-  }
-
-  // 全ての区間から [l, r] と重なる部分を削除する (l <= r)
-  void remove(ll l, ll r)
-  {
-    // l より左から始まり、l にかかっている区間を先に処理する
-    auto it = m.upper_bound(l);
-    if (it != m.begin())
-    {
-      auto p = prev(it);
-      // p.secondだとだめらしい
-      if (p->second >= l)
-      {
-        ll pl = p->first, pr = p->second;
-        m.erase(p);
-        if (pl < l)
-          m[pl] = l - 1;
-        if (pr > r)
-        {
-          m[r + 1] = pr;
-          return;
-        }
-      }
-    }
-    // l 以上 r 以下から始まる区間
-    it = m.lower_bound(l);
-    while (it != m.end() && it->first <= r)
-    {
-      ll cr = it->second;
-      it = m.erase(it);
-      if (cr > r)
-      {
-        m[r + 1] = cr;
-        break;
-      }
-    }
-  }
-};
 int main()
 {
-  ll n, t, k;
-  cin >> n >> k >> t;
-  SegmentMap m;
-  m.insert(0, t - 1);
-  rep(i, 0, n)
-  {
-    ll a;
-    cin >> a;
-    m.remove(a, a + k - 1);
-  }
-  ll ans = 0;
-  for (auto p : m)
-  {
-    // cout << p.first << " " << p.second << endl;
-    ll cur = (p.second - p.first + 1 + k - 1) / (k);
-    // cout << cur << endl;
-    ans += cur;
-  }
-  cout << ans << endl;
 }
