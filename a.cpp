@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
+#include <atcoder/all>
+using namespace atcoder;
+using mint = modint998244353;
 #define rep(i, l, r) for (ll i = (l); i < (r); i++)
 #define drep(i, l, r) for (long long i = (r) - 1; i >= l; i--)
 #define nall(a) a.begin(), a.end()
@@ -125,12 +128,19 @@ ll LIS(vector<T> a)
   }
   return dp.size();
 }
+using segmap_var = mint; // これは適宜変更する
 struct SegmentMap
 {
-  map<ll, ll> m; // 区間の左端 -> 右端
+  struct N
+  {
+    ll r;
+    ll num;
+  };
+  map<ll, N> m; // 区間の左端 -> 右端
+  ll val;
   // bool merge_adjacent;
   // merge_adjacent = true なら [l, c] と [c+1, r] を1つの区間にまとめる
-  SegmentMap() : m() {};
+  SegmentMap() : m(), val(0) {};
   auto begin() const { return m.begin(); }
   auto end() const { return m.end(); }
   size_t size() const { return m.size(); }
@@ -142,7 +152,7 @@ struct SegmentMap
     if (it == m.begin())
       return m.end();
     --it;
-    if (it->second >= i)
+    if (it->second.r >= i)
       return it;
     return m.end();
   }
@@ -153,46 +163,78 @@ struct SegmentMap
     return a != m.end() && a == get(j);
   }
   // 区間 [l, r] を追加する (l <= r)。重なる区間(と、設定によって隣接する区間)は併合される
-  void insert(ll l, ll r)
+  segmap_var insert(ll l, ll r)
   {
-    ll d = 1;
+    return insert(l, r, 0, [](ll l, ll r, ll num)
+                  { return 0; });
+  }
+  // 状況に応じて関数や第三引数を入れられる挿入して増えた量を返す
+  template <class Func>
+  segmap_var insert(ll l, ll r, ll num, const Func &func)
+  {
+    segmap_var cur = 0;
+    ll d = 0; // 1;
     auto it = m.upper_bound(l);
     if (it != m.begin())
     {
       auto p = prev(it);
-      if (p->second + d >= l)
+      if (p->second.r + d >= l)
       {
         l = p->first;
-        r = max(r, p->second);
+        r = max(r, p->second.r);
+        val -= p->second.r - p->first + 1;
+        cur -= func(p->first, p->second.r, p->second.num);
         it = m.erase(p); // it は元の it と同じ要素を指す
       }
     }
     while (it != m.end() && it->first <= r + d)
     {
-      r = max(r, it->second);
+      r = max(r, it->second.r);
+      val -= it->second.r - it->first + 1;
+      cur -= func(it->first, it->second.r, it->second.num);
       it = m.erase(it);
     }
-    m[l] = r;
+    val += (r - l + 1);
+    cur += func(l, r, num);
+    m[l] = N{r, num};
+    return -cur;
   }
   // 全ての区間から [l, r] と重なる部分を削除する (l <= r)
-  void remove(ll l, ll r)
+  segmap_var remove(ll l, ll r)
   {
+    return remove(l, r, 0, [](ll l, ll r, ll num)
+                  { return 0; });
+  }
+  // 消される量を返す
+  template <class Func>
+  segmap_var remove(ll l, ll r, ll num, const Func &func)
+  {
+    segmap_var cur = 0;
     // l より左から始まり、l にかかっている区間を先に処理する
     auto it = m.upper_bound(l);
     if (it != m.begin())
     {
       auto p = prev(it);
       // *p.secondだとだめらしい
-      if (p->second >= l)
+      if (p->second.r >= l)
       {
-        ll pl = p->first, pr = p->second;
+        ll pl = p->first, pr = p->second.r;
+        val -= p->second.r - p->first + 1;
+        cur -= func(p->first, p->second.r, p->second.num);
+        ll v = p->second.num;
         m.erase(p);
         if (pl < l)
-          m[pl] = l - 1;
+        {
+          m[pl] = N{l - 1, v};
+          val += (l - 1) - pl + 1;
+          cur += func(pl, l - 1, v);
+        }
         if (pr > r)
         {
-          m[r + 1] = pr;
-          return;
+          m[r + 1] = N{pr, v};
+          val += pr - (r + 1) + 1;
+          cur += func(r + 1, pr, v);
+          return cur;
         }
       }
     }
@@ -200,14 +242,20 @@ struct SegmentMap
     it = m.lower_bound(l);
     while (it != m.end() && it->first <= r)
     {
-      ll cr = it->second;
+      ll cr = it->second.r;
+      val -= it->second.r - it->first + 1;
+      cur -= func(it->first, it->second.r, it->second.num);
+      ll v = it->second.num;
       it = m.erase(it);
       if (cr > r)
       {
-        m[r + 1] = cr;
+        m[r + 1] = N{cr, v};
+        val += cr - (r + 1) + 1;
+        cur += func(r + 1, cr, v);
         break;
       }
     }
+    return cur;
   }
   ll mex(ll x = 0)
   {
@@ -217,9 +265,9 @@ struct SegmentMap
       return x;
     }
     --p;
-    if (p->second >= x && p->first <= x)
+    if (p->second.r >= x && p->first <= x)
     {
-      return p->second + 1;
+      return p->second.r + 1;
     }
     else
     {
@@ -649,9 +697,9 @@ map<ll, ll> disiver(ll k)
 //    何が分かればいい？
 //    どう更新するか
 // 大事なことなので何度も言います.優先度付きキューを使うときは降順昇順、値の順番に気を付ける・・
-#include <atcoder/all>
-using namespace atcoder;
-using mint = modint998244353;
+// #include <atcoder/all>
+// using namespace atcoder;
+// using mint = modint998244353;
 struct F
 {
   mint R;
@@ -696,14 +744,20 @@ bool fun(ll t)
 }
 int main()
 {
+  ll n, q;
+  cin >> n >> q;
   SegmentMap m;
-  ll n;
-  cin >> n;
-  rep(i, 0, n)
+  m.insert(1, n);
+  while (q--)
   {
-    ll p;
-    cin >> p;
-    m.insert(p, p);
-    cout << m.mex() << endl;
+    ll d, l, r;
+    cin >> d >> l >> r;
+    auto f = [&](ll l, ll r, ll num) -> segmap_var
+    {
+      return segmap_var(d - num) * (l + r) * (r - l + 1) / 2;
+    };
+    mint t = m.remove(l, r, d, f);
+    mint y = m.insert(l, r, d, f);
+    cout << (y - t).val() << endl;
   }
 }
