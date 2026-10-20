@@ -1,3 +1,4 @@
+// https://github.com/denrock29251-maker/memo-for-kyopro/tree/main
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/all>
@@ -138,9 +139,9 @@ struct SegmentMap
   };
   map<ll, N> m; // 区間の左端 -> 右端
   ll val;
-  // bool merge_adjacent;
+  bool merge_adjacent;
   // merge_adjacent = true なら [l, c] と [c+1, r] を1つの区間にまとめる
-  SegmentMap() : m(), val(0) {};
+  SegmentMap() : m(), val(0), merge_adjacent(true) {};
   auto begin() const { return m.begin(); }
   auto end() const { return m.end(); }
   size_t size() const { return m.size(); }
@@ -173,7 +174,11 @@ struct SegmentMap
   segmap_var insert(ll l, ll r, ll num, const Func &func)
   {
     segmap_var cur = 0;
-    ll d = 0; // 1;
+    ll d = 0;
+    if (merge_adjacent)
+    {
+      d = 1;
+    }
     auto it = m.upper_bound(l);
     if (it != m.begin())
     {
@@ -744,17 +749,19 @@ bool fun(ll t)
 }
 int main()
 {
+  // ABC255_Ex
   ll n, q;
   cin >> n >> q;
   SegmentMap m;
+  m.merge_adjacent = false;
   m.insert(1, n);
   while (q--)
   {
     ll d, l, r;
     cin >> d >> l >> r;
-    auto f = [&](ll l, ll r, ll num) -> segmap_var
+    auto f = [&](ll l, ll r, ll num) -> mint
     {
-      return segmap_var(d - num) * (l + r) * (r - l + 1) / 2;
+      return mint(d - num) * (l + r) * (r - l + 1) / 2;
     };
     mint t = m.remove(l, r, d, f);
     mint y = m.insert(l, r, d, f);
