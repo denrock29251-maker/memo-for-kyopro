@@ -52,12 +52,13 @@ ll floor(ll x, ll m)
   // 負の数の割り算をしたいときに使う
   //-7/2=-4になるこれだったら
 }
-ll cross(ll ax, ll ay, ll bx, ll by)
+struct point
 {
-  // 二つのベクトルの外積を求める
-  return ax * by - ay * bx;
-  // これが0だったら平行
-  // 原点->a->bの順にまわる
+  ll x, y;
+};
+long long cross(const point &a, const point &b)
+{
+  return a.x * b.y - a.y * b.x;
 }
 ll dot(ll ax, ll ay, ll bx, ll by)
 {
@@ -65,31 +66,31 @@ ll dot(ll ax, ll ay, ll bx, ll by)
   return ax * bx + ay * by;
   // これが0だったら垂直
 }
-bool ispoint(ll px, ll py, ll qx, ll qy, ll rx, ll ry, ll sx, ll sy)
-{
-  ll bigx = px - qx;
-  ll bigy = py - qy;
-  ll smallx = rx - sx;
-  ll smally = ry - sy;
-  ll vec = cross(bigx, bigy, smallx, smally);
-  if (vec != 0)
-    return true;
-  else
-  {
-    ll tx = rx - px;
-    ll ty = ry - py;
-    if (cross(bigx, bigy, tx, ty) == 0)
-      return true;
-    return false;
-  }
-  // 2直線が交点を持つかを判定するヨ
-}
+// bool ispoint(ll px, ll py, ll qx, ll qy, ll rx, ll ry, ll sx, ll sy)
+// {
+//   ll bigx = px - qx;
+//   ll bigy = py - qy;
+//   ll smallx = rx - sx;
+//   ll smally = ry - sy;
+//   ll vec = cross(bigx, bigy, smallx, smally);
+//   if (vec != 0)
+//     return true;
+//   else
+//   {
+//     ll tx = rx - px;
+//     ll ty = ry - py;
+//     if (cross(bigx, bigy, tx, ty) == 0)
+//       return true;
+//     return false;
+//   }
+//   // 2直線が交点を持つかを判定するヨ
+// }
 bool isout_grid(ll i, ll j, ll h, ll w)
 {
   // グリッド内ならfalseグリッド外ならtrue
   return (!(0 <= i && i < h && 0 <= j && j < w));
 }
-void Yes(bool a)
+inline void Yes(bool a)
 {
   if (a)
   {
@@ -643,7 +644,7 @@ tuple<vector<ll>, vector<ll>, vector<ll>> euler_tour(vector<vector<ll>> &gragh, 
   }
   return {in, out, tour};
 }
-vector<ll> dijkstra(const vector<vector<pair<int, ll>>> &g, int s)
+vector<ll> dijkstra(const vector<vector<pair<ll, ll>>> &g, int s)
 {
   vector<ll> dist(g.size(), LLONG_MAX);
   priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<>> pq;
@@ -670,7 +671,7 @@ int keta(ll t)
 {
   return to_string(t).size();
 }
-map<ll, ll> disiver(ll k)
+map<ll, ll> disiver(ll k) // 素因数分解
 {
   map<ll, ll> m;
   if (k <= 1)
@@ -698,6 +699,19 @@ map<ll, ll> disiver(ll k)
   }
   return m;
 }
+// atcoder公式解説より
+bool cmp(const point &a, const point &b)
+{
+  int ah = (a.y < 0 or (a.y == 0 and a.x < 0));
+  int bh = (b.y < 0 or (b.y == 0 and b.x < 0));
+  if (ah != bh)
+    return ah < bh;
+  return cross(a, b) > 0;
+}
+void argument_sort(vector<point> &points)
+{
+  sort(points.begin(), points.end(), cmp);
+}
 //    問題を言い換えてみる？
 //    何が分かればいい？
 //    どう更新するか
@@ -707,40 +721,39 @@ map<ll, ll> disiver(ll k)
 // using mint = modint998244353;
 struct F
 {
-  mint R;
-  mint G;
-  mint B;
-  mint RG;
-  mint RB;
-  mint GB;
-  mint RGB;
+  mint a, b;
+  mint ab;
+  ll len;
 };
 F op(F a, F b)
 {
-  F c;
-  c.R = a.R + b.R;
-  c.G = a.G + b.G;
-  c.B = a.B + b.B;
-  c.RG = a.RG + b.RG + a.R * b.G;
-  c.GB = a.GB + b.GB + a.G * b.B;
-  c.RGB = a.RGB + b.RGB + a.RG * b.B + a.R * b.GB;
-  return c;
+  return F{a.a + b.a, a.b + b.b, a.ab + b.ab, a.len + b.len};
 }
 F e()
 {
-  return F{0, 0, 0, 0, 0, 0, 0};
+  return F{0, 0, 0, 0};
 }
-ll mapping(ll f, ll x)
+struct s
 {
-  return f + x;
+  mint a, b;
+};
+F mapping(s f, F x)
+{
+  F y;
+  y.len = x.len;
+  y.a = x.a + f.a * x.len;
+  y.b = x.b + f.b * x.len;
+  y.ab = x.ab + x.a * f.b + x.b * f.a + f.a * f.b * x.len;
+  // y.ab = y.a * y.b;
+  return y;
 }
-ll composition(ll f, ll g)
+s composition(s f, s g)
 {
-  return f + g;
+  return s{f.a + g.a, f.b + g.b};
 }
-ll id()
+s id()
 {
-  return 0;
+  return s{0, 0};
 }
 ll target;
 bool fun(ll t)
@@ -749,22 +762,5 @@ bool fun(ll t)
 }
 int main()
 {
-  // ABC255_Ex
-  ll n, q;
-  cin >> n >> q;
-  SegmentMap m;
-  m.merge_adjacent = false;
-  m.insert(1, n);
-  while (q--)
-  {
-    ll d, l, r;
-    cin >> d >> l >> r;
-    auto f = [&](ll l, ll r, ll num) -> mint
-    {
-      return mint(d - num) * (l + r) * (r - l + 1) / 2;
-    };
-    mint t = m.remove(l, r, d, f);
-    mint y = m.insert(l, r, d, f);
-    cout << (y - t).val() << endl;
-  }
+  // abc481のF問題を解く
 }
