@@ -280,6 +280,22 @@ struct SegmentMap
             return x;
         }
     }
+    void debug()
+    {
+        for (auto p : m)
+        {
+            cout << '[' << p.first << ',' << p.second.r << ']';
+        }
+        cout << endl;
+    }
+    void debug_with_value()
+    {
+        for (auto p : m)
+        {
+            cout << '[' << p.first << ',' << p.second.r << ', 値は' << p.second.num << ']';
+        }
+        cout << endl;
+    }
 };
 template <typename Func>
 P binary(ll ok, ll ng, const Func &func)
