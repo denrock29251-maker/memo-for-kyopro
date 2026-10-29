@@ -292,7 +292,7 @@ struct SegmentMap
     {
         for (auto p : m)
         {
-            cout << '[' << p.first << ',' << p.second.r << ', 値は' << p.second.num << ']';
+            cout << '[' << p.first << ',' << p.second.r << ", 値は" << p.second.num << ']';
         }
         cout << endl;
     }
@@ -762,29 +762,12 @@ int main()
 {
     ll n, q;
     cin >> n >> q;
-    vector<ll> a(n);
-    rep(i, 0, n) cin >> a[i], a[i]--;
-    const int D = 30;
-    vector<vector<ll>> to(D, vector<ll>(n));
-    vector<vector<ll>> sum(D, vector<ll>(n));
-    rep(i, 0, n) to[0][i] = a[i];
-    rep(i, 0, n) sum[0][i] = i + 1; // jにおける2^k個先の状態を取り出す
-    rep(i, 0, D - 1) rep(j, 0, n)
-    {
-        to[i + 1][j] = to[i][to[i][j]];
-        sum[i + 1][j] = sum[i][j] + sum[i][to[i][j]];
-    }
+    SegmentMap m;
     while (q--)
     {
-        ll t, b;
-        cin >> t >> b;
-        b--;
-        ll ans = 0;
-        rep(i, 0, D) if ((t >> i & 1))
-        {
-            ans += sum[i][b];
-            b = to[i][b];
-        }
-        cout << ans << endl;
+        ll l, r;
+        cin >> l >> r;
+        m.insert(l, r);
+        cout << n - m.val << endl;
     }
 }
