@@ -424,8 +424,8 @@ bool isIsomorphic(const string &s, const string &t) // 文字列が同値がど�
   // 正規化した数列が一致するか比較
   return normalize(s) == normalize(t);
 }
-vector<ll> optimizedSieve(ll n) {
-  vector<ll> primes;
+vector<int> optimizedSieve(ll n) {
+  vector<int> primes;
   vector<bool> prime(n + 1, true);
   prime[0] = prime[1] = false;
   for(ll p = 2; p * p <= n; p++) {
@@ -438,6 +438,28 @@ vector<ll> optimizedSieve(ll n) {
   }
   return primes;
 }
+struct Sievefacter{
+  //各iの持つ最小の素因数を持つ
+  vector<int> min_facter;
+  Sievefacter(int n){
+      vector<int> res(n);
+      iota(res.begin(), res.end(), 0);
+      for (int i = 2; i*i < n; i++) {
+        if (res[i] < i) continue;
+        for (int j = i*i; j < n; j += i)
+          if (res[j] == j) res[j] = i;
+      min_facter = res;
+    }
+  }
+  vector<int> facter(ll v){
+    vector<int>res;
+    while(v>1){
+      res.push_back(min_facter[v]);
+      v/=min_facter[v];
+    }
+    return res;
+  }
+};
 char trans(char a) { return a ^ 32; }
 vector<P> mergesegment(vector<P> &d) // 重複がないように区間を結合するやつ// mexとかやりたいならライブラリを引っ張ろう
 {
