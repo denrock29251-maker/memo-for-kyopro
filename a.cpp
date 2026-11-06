@@ -12,10 +12,10 @@ using mint2 = modint1000000007;
 #define drep(i, l, r) for(long long i = (r) - 1; i >= l; i--)
 #define nall(a) a.begin(), a.end()
 #define uniq(a)                       \
-  {                                   \
-    sort(nall(a));                    \
-    a.erase(unique(nall(a)), a.end()) \
-  }
+{                                   \
+  sort(nall(a));                    \
+  a.erase(unique(nall(a)), a.end()) \
+}
 #define upb(A, a) {(ll)upper_bound(nall(A), a) - A.begin()}
 #define lwb(A, a) {(ll)lower_bound(nall(A), a) - A.begin()}
 using ll = long long;
@@ -110,7 +110,7 @@ inline void Yes(bool a) {
 }
 bool compare(P &a, P &b) {
   return a.second < b.second;
-
+  
   // <で小さい順　>で大きい順
   // pairのsecondでソートする比較関数
   // >で大きい順　<で小さい順
@@ -262,7 +262,7 @@ struct SegmentMap {
   void debug_with_value() {
     for(auto p : m) {
       cout << '[' << p.first << ',' << p.second.r << ", 値は" << p.second.num
-           << ']';
+      << ']';
     }
     cout << endl;
   }
@@ -373,7 +373,7 @@ ll comb_large_n(ll a, ll b) // Nのみが大きいときのnCkに対応　計算
 {
   if(a < 0 || b < 0 || a < b) return 0;
   if(b == 0) return 1;
-
+  
   ll num = 1;
   for(ll i = 0; i < b; i++) {
     num = num * ((a - i) % mod) % mod;
@@ -409,7 +409,7 @@ vector<ll> normalize(const string &str) {
   map<ll, ll> char_to_id;
   vector<ll> res;
   int next_id = 0;
-
+  
   for(char c : str) {
     if(!char_to_id.count(c)) {
       char_to_id[c] = next_id++;
@@ -439,15 +439,6 @@ vector<ll> optimizedSieve(ll n) {
   return primes;
 }
 char trans(char a) { return a ^ 32; }
-vector<ll> vals(const vector<ll> &a) // 座圧　出来てるかは不明　log n
-{
-  auto b = a;
-  sort(nall(b));
-  b.erase(unique(nall(b)), b.end());
-  vector<ll> ans(a.size());
-  rep(i, 0, a.size()) { ans[i] = lower_bound(nall(b), a[i]) - b.begin(); }
-  return ans;
-}
 vector<P> mergesegment(vector<P> &d) // 重複がないように区間を結合するやつ// mexとかやりたいならライブラリを引っ張ろう
 {
   if(d.empty()) return d;
@@ -480,8 +471,8 @@ struct Tri {
   };
   vector<Node> d;
   Tri()
-      : d(1) {
-        }; // 0番目は根となるノード　DFSとかをするときに除外しないといけない
+  : d(1) {
+  }; // 0番目は根となるノード　DFSとかをするときに除外しないといけない
   void add(const string &s) {
     int v = 0;
     for(char c : s) {
@@ -527,6 +518,28 @@ tuple<vector<ll>, vector<ll>, vector<ll>> euler_tour(vector<vector<ll>> &gragh, 
   }
   return {in, out, tour};
 }
+vector<ll> vals(const vector<ll> &a) // 座圧　出来てるかは不明　log n
+{
+  auto b = a;
+  sort(nall(b));
+  b.erase(unique(nall(b)), b.end());
+  return b;
+  //vector<ll> ans(a.size());
+  //rep(i, 0, a.size()) { ans[i] = lower_bound(nall(b), a[i]) - b.begin(); }
+  //return ans;
+}
+struct vals_benri{
+  vector<ll>s;
+  vals_benri(const vector<ll>&a){
+    s = a;
+    sort(nall(s));
+    s.erase(unique(nall(s)),s.end());
+  }
+  //座圧後の何番になるかを返してくれる
+  ll id(ll b){
+    return lower_bound(nall(s),b)-s.begin();
+  }
+};
 vector<ll> dijkstra(const vector<vector<pair<ll, ll>>> &g, int s) {
   vector<ll> dist(g.size(), LLONG_MAX);
   priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<>> pq;
@@ -670,54 +683,27 @@ struct ki {
   vector<vector<ll>> return_g() { return g; }
 };
 
-struct F {
-  ll x;
-  ll t;
-  ll y;
-  ll s;
-  ll h;
-};
-F op(F a, F b) {
-  F c;
-  c.s = a.s + b.s;
-  c.x = a.x + b.x + a.t * b.s + b.y * a.s;
-  c.t = b.t + b.h * a.s + a.t;
-  c.y = a.y + a.h * b.s + b.y;
-  c.h = a.h + b.h;
-  return c;
-}
-F e() { return F{0, 0, 0, 0, 0}; }
+
 // struct s
 // {
 //     mint a, b;
 // };
-// F mapping(ll f, F x)
-// {
-//     return F{x.x + f, x.len, x.cnt, x.y};
-// }
-// ll composition(ll f, ll g)
-// {
-//     return f + g;
-// }
-// ll id()
-// {
-//     return 0;
-// }
-// ll target;
-// bool fun(F t)
-// {
-//     return t.len - t.cnt < target;
-// }
-int main() {
-  ll n,k;
-  cin>>n>>k;
-  vector<ll>x(n),r(n);
-  SegmentMap m;
-  rep(i,0,n){
-    cin>>x[i]>>r[i];
-    m.insert(x[i]-r[i],x[i]+r[i]);
-  }
-  for(auto p:m){
-    cout<<p.first<<" "<<p.second.r<<endl;
-  }
+ll mappint (ll f,ll x){
+  return f+x;
 }
+ll composition(ll f,ll g){
+  return f+g;
+}
+ll id (){
+  return 0;
+}
+ll target;
+bool fun(ll t)
+{
+  return t < target;
+}
+int main()
+{
+  
+}
+
