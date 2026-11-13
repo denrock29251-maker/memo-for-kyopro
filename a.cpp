@@ -18,6 +18,7 @@ using mint2 = modint1000000007;
 }
 #define upb(A, a) {(ll)upper_bound(nall(A), a) - A.begin()}
 #define lwb(A, a) {(ll)lower_bound(nall(A), a) - A.begin()}
+#define maxe(a) *max_elemnt(nall(a))
 using ll = long long;
 using lll = __int128;
 using P = pair<ll, ll>;
@@ -138,8 +139,9 @@ struct SegmentMap {
   map<ll, N> m; // 区間の左端 -> 右端
   ll val;
   bool merge_adjacent;
+  ll max_size;//removeには非対応
   // merge_adjacent = true なら [l, c] と [c+1, r] を1つの区間にまとめる
-  SegmentMap() : m(), val(0), merge_adjacent(true) {};
+  SegmentMap() : m(), val(0), merge_adjacent(true),max_size(0) {};
   auto begin() const { return m.begin(); }
   auto end() const { return m.end(); }
   size_t size() const { return m.size(); }
@@ -190,6 +192,7 @@ struct SegmentMap {
     val += (r - l + 1);
     cur += func(l, r, num);
     m[l] = N{r, num};
+    max_size = max(r-l+1,max_size);
     return -cur;
   }
   // 全ての区間から [l, r] と重なる部分を削除する (l <= r)
@@ -710,8 +713,18 @@ struct ki {
 // {
 //     mint a, b;
 // };
-ll mappint (ll f,ll x){
-  return f+x;
+struct F {
+  ll x;
+  ll len;
+};
+ll op (ll a,ll b){
+  return min(a,b);
+}
+ll e(){
+  return infinity;
+}
+F mapping (ll f,F x){
+  return F{x.x+f*x.len,x.len};
 }
 ll composition(ll f,ll g){
   return f+g;
@@ -724,8 +737,44 @@ bool fun(ll t)
 {
   return t < target;
 }
+bool cmp(pair<P,ll>a,pair<P,ll>b){
+  if(a.first.first==b.first.first){
+    return a.second<b.second;
+  }
+  return a.first.first>b.first.first;
+}
 int main()
 {
-  
+  //awc200 k問題
+  ll n,s;
+  cin>>n>>s;
+  vector<ll>a(n);
+  rep(i,0,n)cin>>a[i];
+  map<ll,vector<ll>>mp;
+  SegmentMap m;
+  rep(i,0,n){
+    mp[a[i]].push_back(i);
+  }
+  auto it = prev(mp.end());
+  ll mi = infinity;
+  bool ok = false;
+  while(true){
+    auto &v = it->second;
+    rep(i,0,v.size()){
+      m.insert(v[i],v[i]);
+    }
+    if(s<=m.max_size*it->first){
+      ok = true;
+      mi = min(mi,(s+it->first-1)/it->first);
+      break;
+    }
+    if(it==mp.begin())break;
+    it--;
+  }
+  if(!ok){
+    cout<<-1<<endl;
+  }
+  else {
+    cout<<mi<<endl;
+  }
 }
-
