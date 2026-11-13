@@ -10,41 +10,7 @@ using mint2 = modint1000000007;
 #define rep(i, l, r) for(ll i = (l); i < (r); i++)
 #define drep(i, l, r) for(long long i = (r) - 1; i >= l; i--)
 #define nall(a) a.begin(), a.end()
-#define uniq(a)                       \
-{                                   \
-  sort(nall(a));                    \
-  a.erase(unique(nall(a)), a.end()) \
-}
-#define upb(A, a) {(ll)upper_bound(nall(A), a) - A.begin()}
-#define lwb(A, a) {(ll)lower_bound(nall(A), a) - A.begin()}
-#define maxe(a) *max_elemnt(nall(a))
 using ll = long long;
-using lll = __int128;
-using P = pair<ll, ll>;
-template <typename T>
-using vc = vector<T>;
-template <typename T>
-using vvc = vc<vc<T>>;
-template <typename T>
-using vvvc = vc<vvc<T>>;
-template <class T, class U>
-// 真に大きい場合にしかtrueを返さない
-inline bool chmax(T &a, const U &b) {
-  if(a < b) {
-    a = b;
-    return true;
-  }
-  return false;
-}
-template <class T, class U>
-// 真に小さい場合にしかtrueを返さない
-inline bool chmin(T &a, const U &b) {
-  if(a > b) {
-    a = b;
-    return true;
-  }
-  return false;
-}
 //mapはマジで重いので制約が軽かったらvectorつかお!!
 //inlineはマジで軽くなる
 inline void add(ll i,vector<ll>&num,ll &len){
